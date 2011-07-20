@@ -383,6 +383,11 @@ public class PipelineBuild {
                     if (hgNo != null) {
                         revNo = hgNo;
                     }
+                } else if ("hudson.plugins.perforce.PerforceSCM".equals(project.getScm().getType())) {
+                    final String p4No = p4No();
+                    if (p4No != null) {
+                        revNo = p4No;
+                    }
                 }
             }
         } catch (final Exception e) {
@@ -391,6 +396,43 @@ public class PipelineBuild {
             LOGGER.warning(e.toString());
         }
         return revNo;
+    }
+
+    /**
+     * Returns the last Perforce change number
+     * 
+     * @return revision number of the current build
+     */
+    private String p4No() throws MalformedURLException, IOException {
+        InputStream inputStream = null;
+        try {
+            String revNo = null;
+            final URL url = new URL(Hudson.getInstance().getRootUrl() + currentBuild.getUrl() + "api/json?tree=changeSet[items[changeNumber]]");
+            inputStream = url.openStream();
+            final JSONObject json = (JSONObject) JSONSerializer.toJSON(IOUtils.toString(inputStream));
+            if (json != null) {
+                try {
+
+                    final JSONArray items = json.getJSONObject("changeSet").getJSONArray("items");
+                    if (items != null && items.size() >= 1) {
+                        revNo = "Perforce: " + items.getJSONObject(0).getString("changeNumber");
+                    }
+                } catch (final JSONException e) {
+                    // This is not great, but swallow jquery parsing exceptions assuming that some element did not exist, will have a better
+                    // solution one I find a JSON query lib or method
+                    LOGGER.finest("did not find svn revision in " + json);
+                }
+            }
+            return revNo;
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (final IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     /**
