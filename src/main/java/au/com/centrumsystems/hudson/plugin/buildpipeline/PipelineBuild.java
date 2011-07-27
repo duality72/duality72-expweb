@@ -36,6 +36,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -79,6 +80,12 @@ public class PipelineBuild {
      */
     private String currentBuildResult;
 
+    /**
+     * Contains a cache mapping builds to revision numbers
+     */
+    private static final Hashtable<AbstractBuild<?,?>, String> REVISION_CACHE = new Hashtable<AbstractBuild<?,?>, String>();
+    /* String to use when no revision is found */
+    private static final String NO_REVISION = "No Revision";
     /** A Logger object is used to log messages */
     private static final Logger LOGGER = Logger.getLogger(PipelineBuild.class.getName());
 
@@ -372,10 +379,13 @@ public class PipelineBuild {
      * @return The revision number of the currentBuild or "No Revision"
      */
     public String getScmRevision() {
-        String revNo = "No Revision";
-        try {
-            if (currentBuild != null) {
-                if ("hudson.scm.SubversionSCM".equals(project.getScm().getType())) {
+        String revNo = NO_REVISION;
+        if (currentBuild != null) {
+        	if (REVISION_CACHE.containsKey(currentBuild)) {
+        		return REVISION_CACHE.get(currentBuild);
+        	}
+        	try {
+            	if ("hudson.scm.SubversionSCM".equals(project.getScm().getType())) {
                     final String svnNo = svnNo();
                     if (svnNo != null) {
                         revNo = svnNo;
@@ -396,11 +406,12 @@ public class PipelineBuild {
                         revNo = p4No;
                     }
                 }
-            }
-        } catch (final Exception e) {
-            // if anything goes wrong, ignore and don't show a revision number, no need to bring the whole view down if we cannot see a
-            // revision
-            LOGGER.warning(e.toString());
+            	if (!revNo.equals(NO_REVISION)) REVISION_CACHE.put(currentBuild, revNo);
+	        } catch (final Exception e) {
+	            // if anything goes wrong, ignore and don't show a revision number, no need to bring the whole view down if we cannot see a
+	            // revision
+	            LOGGER.warning(e.toString());
+	        }
         }
         return revNo;
     }
