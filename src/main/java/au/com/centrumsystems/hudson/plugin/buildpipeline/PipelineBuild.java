@@ -41,8 +41,10 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.HostnameVerifier;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
@@ -431,6 +433,17 @@ public class PipelineBuild {
     	    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
     	} catch (Exception e) {
     	}
+
+               HostnameVerifier hv = new HostnameVerifier()
+    {
+        public boolean verify(String urlHostName, SSLSession session)
+        {
+            System.out.println("Warning: URL Host: " + urlHostName + " vs. "
+                    + session.getPeerHost());
+            return true;
+        }
+    };
+    HttpsURLConnection.setDefaultHostnameVerifier(hv);
 
         InputStream inputStream = null;
         try {
