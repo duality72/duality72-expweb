@@ -76,16 +76,16 @@ public final class BuildUtil {
     /**
      * Given an Upstream AbstractBuild and a Downstream AbstractProject will retrieve the associated ParametersAction.
      * This will result in parameters from the upstream build not overriding parameters on the downstream project. 
-     * @param upstreamBuild - The AbstractBuild
+     * @param downstreamBuild - The AbstractBuild
      * @param downstreamProject - The AbstractProject
      * @return - AbstractBuild's ParametersAction
      */
-    public static Action getAllBuildParametersAction(AbstractBuild<?, ?> upstreamBuild, AbstractProject<?, ?> downstreamProject) {
+    public static Action getAllBuildParametersAction(AbstractBuild<?, ?> downstreamBuild, AbstractProject<?, ?> downstreamProject) {
         // Retrieve the List of Actions from the downstream project
         final ParametersAction dsProjectParametersAction = ProjectUtil.getProjectParametersAction(downstreamProject);
         
         // Retrieve the List of Actions from the upstream build
-        final ParametersAction usBuildParametersAction = BuildUtil.getBuildParametersAction(upstreamBuild);
+        final ParametersAction usBuildParametersAction = BuildUtil.getBuildParametersAction(downstreamBuild);
         
         return mergeParameters(usBuildParametersAction, dsProjectParametersAction);
     }
