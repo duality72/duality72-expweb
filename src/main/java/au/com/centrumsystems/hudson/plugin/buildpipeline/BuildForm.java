@@ -68,6 +68,11 @@ public class BuildForm {
      * downstream builds
      */
     private List<BuildForm> dependencies = new ArrayList<BuildForm>();
+    
+    /**
+     * build number for current build
+     */
+	private String number;
 
     /**
      * @param pipelineBuild
@@ -80,6 +85,7 @@ public class BuildForm {
         url = pipelineBuild.getBuildResultURL();
         duration = pipelineBuild.getBuildDuration();
         manual = pipelineBuild.isManual();
+        setNumber(pipelineBuild.getCurrentBuildNumber());
 
         if (pipelineBuild.getUpstreamPipelineBuild() != null) {
             if (pipelineBuild.getUpstreamPipelineBuild().getProject() != null) {
@@ -190,5 +196,13 @@ public class BuildForm {
      */
     public long getBuildProgress() {
         return buildProgress;
-    }    
+    }
+
+	public void setNumber(String number) {
+		this.number = number;
+	}
+
+	public String getNumber() {
+		return number;
+	}    
 }

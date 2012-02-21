@@ -78,6 +78,8 @@ public class BuildPipelineView extends View {
     private static final Logger LOGGER = Logger.getLogger(BuildPipelineView.class.getName());
     /** Constant that represents the Stapler Request upstream build number. */
     private static final String REQ_UPSTREAM_BUILD_NUMBER = "upstreamBuildNumber";
+    /** Constant that represents the Stapler Request trigger project build number. */
+    private static final String REQ_TRIGGER_BUILD_NUMBER = "triggerBuildNumber";
     /** Constant that represents the Stapler Request trigger project name. */
     private static final String REQ_TRIGGER_PROJECT_NAME = "triggerProjectName";
     /** Constant that represents the Stapler Request upstream project name. */
@@ -252,13 +254,21 @@ public class BuildPipelineView extends View {
         } else {
             upstreamBuildNo = Integer.parseInt(req.getParameter(REQ_UPSTREAM_BUILD_NUMBER));
         }
+        int triggerBuildNo;
+        if (req.getParameter(REQ_TRIGGER_BUILD_NUMBER) == null) {
+        	triggerBuildNo = 0;
+        } else {
+        	triggerBuildNo = Integer.parseInt(req.getParameter(REQ_TRIGGER_BUILD_NUMBER));
+        }
         final AbstractProject<?, ?> triggerProject = (AbstractProject<?, ?>) super.getJob(req.getParameter(REQ_TRIGGER_PROJECT_NAME));
         final AbstractProject<?, ?> upstreamProject = (AbstractProject<?, ?>) super.getJob(req.getParameter(REQ_UPSTREAM_PROJECT_NAME));
 
         final AbstractBuild<?, ?> upstreamBuild = retrieveBuild(upstreamBuildNo, upstreamProject);
 
+        final AbstractBuild<?, ?> triggerBuild = retrieveBuild(triggerBuildNo, triggerProject);
+
         // Get parameters from upstream build
-        final Action buildParametersAction = BuildUtil.getAllBuildParametersAction(upstreamBuild, triggerProject);
+        final Action buildParametersAction = BuildUtil.getAllBuildParametersAction(triggerBuild, triggerProject);
         
         triggerBuild(triggerProject, upstreamBuild, buildParametersAction);
 
